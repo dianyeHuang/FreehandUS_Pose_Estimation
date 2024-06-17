@@ -2,7 +2,7 @@
 Author: Dianye dianye.huang@tum.de
 Date: 2024-06-14 21:38:53
 LastEditors: Dianye dianye.huang@tum.de
-LastEditTime: 2024-06-14 21:43:47
+LastEditTime: 2024-06-17 18:38:30
 FilePath: /FreehandUS/simulation_settings/vrepsim_utils.py
 Description: 
     when streaming the data, recall "simx_opmode_streaming" before using "simx_opmode_buffer"
@@ -76,6 +76,19 @@ def get_object_pose(clientID, obj_handle, relative_handle=-1, flag_quat=False):
         errCode, ort = sim.simxGetObjectOrientation(clientID, obj_handle,
                             relative_handle, sim.simx_opmode_blocking)  # alpha, beta, gamma
     return pos, ort 
+
+def rand2pose_parser(rand_vec, ws_lim, offset_xyz=[0.0, 0.0, 0.0], 
+                    offset_alpha=np.pi, xy_shrink=1.0):
+    return np.array([
+        xy_shrink*rand_vec[0]*ws_lim[0]/2.0+offset_xyz[0],    # pos x (m)
+        xy_shrink*rand_vec[1]*ws_lim[1]/2.0+offset_xyz[1],    # pos y
+        (rand_vec[2]+1)*ws_lim[2]/2.0+offset_xyz[2],              # pos z
+        np.pi/180.0*rand_vec[3]*ws_lim[3]/2 + offset_alpha,  # ort alpha (deg)
+        np.pi/180.0*rand_vec[4]*ws_lim[4]/2,  # ort beta 
+        np.pi/180.0*rand_vec[5]*ws_lim[5]/2   # ort gamma
+    ])
+
+
 
 if __name__ == '__main__':
     print('hello world!')
