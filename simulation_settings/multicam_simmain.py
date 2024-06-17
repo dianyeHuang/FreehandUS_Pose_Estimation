@@ -65,9 +65,9 @@ except:
     print ('')
 
 
+import os
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from multicam_simutils import rand2pose_parser
@@ -75,6 +75,8 @@ from multicam_simutils import rand2pose_parser
 WS_LIM = [0.25, 0.20, 0.05, 60.0, 60.0, 200.0] # tx, tx, tz, eulerx, eulery, eulerz
 OFFSET_XYZ = [-0.125, 0.0, 0.03] # offset x, y , z
 OFFSET_ALP = np.pi
+
+FOLDER_PATH = '/home/camp/CampUsers/dianye/DataPort/FreehandUS'
 
 
 if __name__ == '__main__':
@@ -106,7 +108,23 @@ if __name__ == '__main__':
         errCode, right_hl  = sim.simxGetObjectHandle(clientID, 'Vision_right' ,sim.simx_opmode_blocking)
         camhl_list = [left_hl, right_hl]
         
-        for i in range(200):
+        
+        # create folder
+        if not os.path.exists(FOLDER_PATH):
+            skip_flag = False
+            data_idx = 0
+            os.makedirs(FOLDER_PATH)
+            fpose = open(os.path.join(FOLDER_PATH, "camholder_poses.txt"), 'w')
+            print("Folder created: ", FOLDER_PATH)
+        else:
+            skip_flag = True
+            print("Folder already exists ...")
+        
+        for _ in tqdm(range(10)):
+            
+            if skip_flag:
+                break
+            
             # generate new poses for the tip of the probe:
             randpose = rand2pose_parser(
                 rand_vec=np.random.uniform(-1.0, 1.0, 6),
@@ -117,21 +135,28 @@ if __name__ == '__main__':
                             pos=randpose[:3], ort=randpose[3:], flag_quat=False)
             
             # -- stream images
-            # img_left   = read_vision_sensor_img(clientID, camhl_list[0])
-            # img_right  = read_vision_sensor_img(clientID, camhl_list[1])
-            # img_cam    = np.hstack((img_left, img_right))
-            # cv2.imwrite('abc.jpg', img_cam)
+            img_left   = read_vision_sensor_img(clientID, camhl_list[0])
+            img_right  = read_vision_sensor_img(clientID, camhl_list[1])
+            img_cam    = np.hstack((img_left, img_right))
+
+            # -- stream poses
+            retval, campose = get_object_pose(clientID, camHolder_hl, 
+                                relative_handle=table_hl, flag_quat=False)
             
-            # -- stream pose
-            # cam_pos, cam_ang = get_object_pose(clientID, camHolder_hl, 
-            #                     relative_handle=table_hl, flag_quat=False)
-            # print('cam_pos: ', cam_pos)
-            # print('cam_ang: ', cam_ang)
-            
+            # -- save image and pose data pair
+            if retval:
+                img_svpath = os.path.join(FOLDER_PATH, "camholderimg" + 
+                                          str(data_idx) + ".jpg")
+                img_cam = cv2.cvtColor(img_cam, cv2.COLOR_BGR2RGB)
+                cv2.imwrite(img_svpath, img_cam)
+                fpose.write(
+                    str(list(campose[0])+list(campose[1]))[1:-1] + '\n'
+                )
+                data_idx += 1
             ###########################################          
             
-        # Now close the connection to CoppeliaSim:
-        # cv2.destroyAllWindows()
+        # Close the connection to CoppeliaSim:
+        if not skip_flag: fpose.close()
         sim.simxFinish(clientID)
     else:
         print ('Failed connecting to remote API server')
