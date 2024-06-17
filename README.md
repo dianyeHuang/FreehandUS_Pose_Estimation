@@ -2,7 +2,7 @@
  * @Author: Dianye dianye.huang@tum.de
  * @Date: 2024-06-14 20:28:11
  * @LastEditors: Dianye dianye.huang@tum.de
- * @LastEditTime: 2024-06-14 21:40:54
+ * @LastEditTime: 2024-06-15 17:17:44
  * @FilePath: /FreehandUS/README.md
  * @Description: 
     * 
@@ -25,22 +25,23 @@ Design the camera holder and decide the how to install the camera, which will af
 ## Simulation settings
 Simulation images and pose pair collection, the simulation scene in coppeliaSim can be found in "assets/coppeliaSim_ttt". To synthesize a dataset in the simulation environment, we should first synchronize the calibration results into the simulation settings and then write a script to communicate with coppeliasim.
 - Preliminaries
-  0. copy and paste some files
-    - "remoteApi.so" if you are using ubuntu 20.04
-    - sim.py
-    - simConst.py
+  
+  - copy and paste some files
+       - "remoteApi.so" if you are using ubuntu 20.04
+       - sim.py
+       - simConst.py
 
-  1. open vrep
+  - open coppeliaSim
   entering the following commands, and import the scene (*.ttt) in the "vrep_sim/scenes/xxxx" into the CoppeliaSim 
-    ```
-    $ cd Downloads/CoppeliaSim_Edu_V4_6_0_rev18_Ubuntu20_04/
-    $ ./coppeliaSim.sh 
-    ```
+      ```
+      $ cd Downloads/CoppeliaSim_Edu_V4_6_0_rev18_Ubuntu20_04/
+      $ ./coppeliaSim.sh 
+      ```
 
-  2. vrep setting
+  - coppeliaSim setting
   define an object as access to the python script. Associate a "Child script" to this object, choose "Non-Threading", use "Lua" type, paste "simRemoteApi.start(19999)" into the "function sysCall_init()".
 
-  3. start communication
+  - start communication
   Start running coppeliaSim first, and then run the python script.
   
 
