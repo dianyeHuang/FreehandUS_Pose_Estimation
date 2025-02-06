@@ -12,7 +12,7 @@ Some useful links:
     - https://manual.coppeliarobotics.com/en/remoteApiFunctionsPython.htm
 
 We setup a virtual environment where we first randomly control the movement
-of the US probe, and then record the images from the 3 external cameras and 
+of the US probe, and then record the images from the 2 external cameras and 
 the pose of the camera_base.
 
 The related Objects' names are:
@@ -24,26 +24,12 @@ The related Objects' names are:
 This virtual environment is built up to regress the pose of the CameraHolder
 based on the streamed RGB images. The application of this work is to achieve
 accurate estimation of the freehand US probe in a relatively structured 
-environment, so that we could reconstruct a 3D volume without using expasive
+environment, so that we could reconstruct a 3D volume without using expensive
 EM or optical tracking devices.
-
 
 To ground the simulation results, we have to develop a physical devices in a
 "ping-pang" manner. Adapting some design params of the CameraHolder and cali
 results to the virtual ones, and vice versa. 
-
-
-This script can collect two types of dataset, one is collected by randomly
-placing the US probe within the workspace, the other is collected by sending
-sequential movement commands to the virtual environment, which mimics the 
-real application scenarios. The latter dataset enable the network to consider
-consistency of the sequential output during the training.
-
-Credit to the 3D models.
-
-
-Segmentation anything:
-https://github.com/facebookresearch/segment-anything/tree/main
 
 '''
 
@@ -71,13 +57,9 @@ import numpy as np
 from tqdm import tqdm
 
 from multicam_simutils import rand2pose_parser
+import tf.transformations as t
 
-WS_LIM = [0.25, 0.20, 0.05, 60.0, 60.0, 200.0] # tx, tx, tz, eulerx, eulery, eulerz
-OFFSET_XYZ = [-0.125, 0.0, 0.03] # offset x, y , z
-OFFSET_ALP = np.pi
-
-FOLDER_PATH = '/home/camp/CampUsers/dianye/DataPort/FreehandUS'
-
+from trackedimgs_gen_configs import *
 
 if __name__ == '__main__':
     """
@@ -115,12 +97,14 @@ if __name__ == '__main__':
             data_idx = 0
             os.makedirs(FOLDER_PATH)
             fpose = open(os.path.join(FOLDER_PATH, "camholder_poses.txt"), 'w')
+            tpose = open(os.path.join(FOLDER_PATH, "ustip_poses.txt"), 'w')
             print("Folder created: ", FOLDER_PATH)
         else:
             skip_flag = True
             print("Folder already exists ...")
         
-        for _ in tqdm(range(10)):
+        iidd = None
+        for _ in tqdm(range(NUM_DATA)):
             
             if skip_flag:
                 break
@@ -131,32 +115,41 @@ if __name__ == '__main__':
                 ws_lim=WS_LIM, offset_xyz=OFFSET_XYZ,
                 offset_alpha=OFFSET_ALP
             )      
+            
+            randquat = t.quaternion_from_euler(*randpose[3:])
             set_object_pose(clientID, USProbTip_hl, relative_handle=table_hl, 
-                            pos=randpose[:3], ort=randpose[3:], flag_quat=False)
+                            pos=randpose[:3], ort=randquat, flag_quat=True)
+                            # pos=randpose[:3], ort=randpose[3:], flag_quat=False)
             
             # -- stream images
-            img_left   = read_vision_sensor_img(clientID, camhl_list[0])
-            img_right  = read_vision_sensor_img(clientID, camhl_list[1])
+            retval_imgl, img_left   = read_vision_sensor_img(clientID, camhl_list[0])
+            retval_imgr, img_right  = read_vision_sensor_img(clientID, camhl_list[1])
             img_cam    = np.hstack((img_left, img_right))
 
             # -- stream poses
-            retval, campose = get_object_pose(clientID, camHolder_hl, 
+            retval_pose, campose = get_object_pose(clientID, camHolder_hl, 
                                 relative_handle=table_hl, flag_quat=False)
             
             # -- save image and pose data pair
-            if retval:
+            if retval_imgl and retval_imgr and retval_pose:
                 img_svpath = os.path.join(FOLDER_PATH, "camholderimg" + 
-                                          str(data_idx) + ".jpg")
+                                          str(data_idx) + ".png")
                 img_cam = cv2.cvtColor(img_cam, cv2.COLOR_BGR2RGB)
                 cv2.imwrite(img_svpath, img_cam)
                 fpose.write(
                     str(list(campose[0])+list(campose[1]))[1:-1] + '\n'
                 )
+                tpose.write(
+                    str(list(randpose))[1:-1] + '\n'
+                )
                 data_idx += 1
-            ###########################################          
+            
+        ###########################################          
             
         # Close the connection to CoppeliaSim:
-        if not skip_flag: fpose.close()
+        if not skip_flag: 
+            fpose.close()
+            tpose.close()
         sim.simxFinish(clientID)
     else:
         print ('Failed connecting to remote API server')

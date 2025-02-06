@@ -7,8 +7,11 @@
  * @Description: 
     * 
 -->
-# FreehandUS
+# Improving Probe Localization for Freehand 3D Ultrasound using Lightweight Cameras
 Pose estimation of freedhand ultrasound probe under a semi-structured environment.
+
+## Estimation_networks
+Networks for pose estimation under a semi-structured environment. 
 
 ## Realworld settings
 Design the camera holder and decide the how to install the camera, which will affect the final field of view. Then, write some codes to stream the images and get the intrinsic/extrinsic and DFOV of the cameras. This section includes:

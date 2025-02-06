@@ -44,7 +44,7 @@ criteria = (cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS, 30, 0.001)
 obj_points = []  
 img_points = []  
 
-i=0;
+i=0
 for fname in images:
     img = cv2.imread(fname)
     img = cv2.resize(img, (640, 360)) # because in the real case, we set the image resolution to be 640 x 360

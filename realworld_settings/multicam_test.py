@@ -3,9 +3,8 @@ Author: Dianye dianye.huang@tum.de
 Date: 2024-06-07 17:05:25
 LastEditors: Dianye dianye.huang@tum.de
 LastEditTime: 2024-06-14 16:33:04
-FilePath: /diffusion_models/multicam_test.py
 Description:
-    xxx
+    test streaming two cameras simultaneously
 '''
 
 
