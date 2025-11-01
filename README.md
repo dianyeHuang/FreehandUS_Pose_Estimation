@@ -67,12 +67,12 @@ Simulation images and pose pair collection, the simulation scene in coppeliaSim 
 If you found this work interesting and adopted part of it to your own research, or if this work inspires your research, you can cite our paper by:
 
 ```
-@inproceedings{posenet25,
-  title     = {Improving Probe Localization for Freehand 3D Ultrasound using Lightweight Cameras},
-  author    = {Dianye, Huang and
-               Nassir, Navab and
-               Zhongliang, Jiang},
-  booktitle = {IEEE International Conference on Robotics and Automation (ICRA)},
-  year = {2025}
+@inproceedings{huang2025improving,
+  title={Improving Probe Localization for Freehand 3D Ultrasound Using Lightweight Cameras},
+  author={Huang, Dianye and Navab, Nassir and Jiang, Zhongliang},
+  booktitle={2025 IEEE International Conference on Robotics and Automation (ICRA)},
+  pages={15472--15478},
+  year={2025},
+  organization={IEEE}
 }
 ```
